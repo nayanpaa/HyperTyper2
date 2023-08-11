@@ -1,0 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+.timerBox {
+  border-width: 1px;
+  border-radius: 5px;
+  border-style: solid;
+  background-color: rgb(40, 39, 39);
+  border-color: gray;
+}
+
+.timerText {
+  font-family: 'Roboto';
+  font-weight: 700;
+  color: rgb(204, 207, 207);
+}
