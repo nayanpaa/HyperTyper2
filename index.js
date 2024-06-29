@@ -9,6 +9,14 @@ require('./services/passport');
 
 mongoose.connect(keys.mongoURI);
 
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
 const app = express();
 
 //cookie expires in 30 days, which is done in milliseconds hence the equation
@@ -39,6 +47,7 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT);
-
+const PORT = process.env.PORT || 5001;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
