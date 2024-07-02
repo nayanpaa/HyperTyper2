@@ -5,6 +5,7 @@ import * as actions from '../actions';
 import Header from './Header';
 import Landing from './Landing';
 import GhostPage from './GhostPage';
+import MultiPlayerPage from './MultiPlayerPage';
 import Dashboard from './Dashboard';
 import './App.css';
 
@@ -27,6 +28,7 @@ class App extends Component {
               <Route exact path="/" component={Landing}/>
               <Route exact path="/home" component={Dashboard}/>
               <Route path="/play/ghost" component={GhostPage}/>
+              <Route path="/play/multiplayer" component={MultiPlayerPage}/>
             </div>
           </BrowserRouter>
       </div>  

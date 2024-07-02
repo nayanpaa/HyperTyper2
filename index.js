@@ -19,6 +19,8 @@ process.on('unhandledRejection', (reason, promise) => {
 
 const app = express();
 
+
+
 //cookie expires in 30 days, which is done in milliseconds hence the equation
 //keys is some random encryption key that we typed gibbirish idek
 //these three use functions are middleware
