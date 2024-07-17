@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { io } from 'socket.io-client'
 // mport { initializeSocket, disconnectSocket, getSocket } from './socketManager';
 
@@ -13,43 +13,52 @@ const MultiPlayerPage = () => {
   const [joined, setJoined] = useState(false);
   const [nickname, setNickname] = useState('');
   const [roomID, setRoomID] = useState('');
+  const [players, setPlayers] = useState([]);
+
+  const setupSocketListeners = useCallback(() => {
+    socket.on('connect', async () => {
+      console.log('connected to socket.io as', socket.id);
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('Connection error:', error);
+    });
+
+    socket.on('reconnect', (attemptNumber) => {
+      console.log('Reconnected after', attemptNumber, 'attempts');
+    });
+    
+    socket.on('reconnect_attempt', (attemptNumber) => {
+      console.log('Attempting reconnection:', attemptNumber);
+    });
+
+    socket.on('playerJoined', ({ playerId, roomId }) => {
+      console.log(`Player ${playerId} joined room ${roomId}`);
+      setPlayers(prevPlayers => [...prevPlayers, playerId]);
+    });
+
+    socket.on('gameStarted', () => {
+      console.log('Game started!');
+    });
+  }, []);
 
   useEffect(() => {
-    // initializeSocket();
-
     try {
       socket = io('/', {
         reconnection: true,
         reconnectionAttempts: Infinity,
-        reconnectionRelay: 1000,
+        reconnectionDelay: 1000,
       });
 
-      socket.on('connect', async () => {
-        console.log('connected to socket.io as', socket.id)
-      })
-
-      socket.on('connect_error', (error) => {
-        console.error('Connection error:', error);
-      });
-
-      socket.on('reconnect', (attemptNumber) => {
-        console.log('Reconnected after', attemptNumber, 'attempts');
-      });
-      
-      socket.on('reconnect_attempt', (attemptNumber) => {
-        console.log('Attempting reconnection:', attemptNumber);
-      });
-
+      setupSocketListeners();
     } catch (error) {
-      console.error('ERROR setting up socket connection:', error)
+      console.error('ERROR setting up socket connection:', error);
     }
-    
 
     return () => {
-      // disconnectSocket();
-      socket.disconnect();
+      if (socket) socket.disconnect();
     };
-  }, []);
+  }, [setupSocketListeners]);
 
   const createGame = () => {
     setShowCreate(true);
@@ -70,9 +79,11 @@ const MultiPlayerPage = () => {
   const handleCreateSubmit = (e) => {
     e.preventDefault(); // Prevent the form from refreshing the page
     if (nickname.trim()) { // Check if nickname is not just whitespace
+      const newRoomID = String(Math.floor(Math.random() * 10000)).padStart(4, '0')
       setJoined(true);
-      setRoomID(String(Math.floor(Math.random() * 10000)).padStart(4, '0'));
-      socket.emit('createRoom', roomID, nickname);
+      setRoomID(newRoomID);
+      setPlayers(prevPlayers => [...prevPlayers, nickname]);
+      socket.emit('createRoom', newRoomID, nickname);
     }
   };
 
@@ -95,9 +106,11 @@ const MultiPlayerPage = () => {
     }
   };
 
+  const startGame = () => {
+    socket.emit('startGame', roomID);
+    //what happens
+  }
 
-
-  // Rest of your component logic...
 
   return (
     <div>
@@ -117,7 +130,7 @@ const MultiPlayerPage = () => {
                 type="text"
                 value={nickname}
                 onChange={handleNicknameInputChange}
-                KeyboardEventHandler={handleKeyPress}
+                onKeyPress={handleKeyPress}
               />
               <button type="submit">Submit</button>
             </form>
@@ -126,7 +139,7 @@ const MultiPlayerPage = () => {
       }
       { showJoin
         ? <div>
-            <form onSubmit={handleJoinSubmit} KeyboardEventHandler={handleKeyPress}>
+            <form onSubmit={handleJoinSubmit} onKeyPress={handleKeyPress}>
               <label htmlFor="nickname">Enter Your Nickname:</label>
               <input
                 id="nickname"
@@ -147,8 +160,19 @@ const MultiPlayerPage = () => {
       }
       { joined
         ? <div> 
-            <button onClick={createGame}>Create Game</button>
-            <button onClick={joinGame}>Join Game</button>
+            Waiting Room
+            <h3>Players in Room:</h3>
+            <ul>
+              {players.map((playerId, index) => (
+                <li key={index}>{playerId}</li>
+              ))}
+            </ul>
+            <div>
+              { showCreate
+                ? <button onClick={startGame} type="submit">Start Game</button>
+                : null
+              }
+            </div>
           </div>
         : null
       }

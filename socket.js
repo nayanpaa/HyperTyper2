@@ -5,12 +5,13 @@ function handleSocket(io) {
     console.log('New client connected:', socket.id);
 
     socket.on('createRoom', (roomId, playerName) => {
+      console.log(`Attempting to create room with ID: ${roomId} for player: ${playerName}`);
       const newRoom = { players: new Map(), gameStarted: false };
       newRoom.players.set(socket.id, {name: playerName, progress: 0 }); 
       rooms.set(roomId, newRoom);
       socket.join(roomId);
       io.to(roomId).emit('roomCreated', roomId);
-      console.log(`Room created: ${roomId}`);
+      console.log(`Room created: ${roomId}, current rooms:`, Array.from(rooms.keys()));
     });
 
     socket.on('joinRoom', (roomId) => {
@@ -20,8 +21,12 @@ function handleSocket(io) {
     });
 
     socket.on('startGame', (roomId) => {
+      console.log('Received startGame event for room:', roomId);
       const room = rooms.get(roomId);
-      if (room && room.players.size > 1) {
+      console.log('Room:', room);
+      // for testing may need to get rid of tracking room size
+      //if (room && room.players.size > 1) {
+      if (room) {
         room.gameStarted = true;
         io.to(roomId).emit('gameStarted');
       }
