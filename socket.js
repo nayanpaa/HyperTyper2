@@ -14,10 +14,32 @@ function handleSocket(io) {
       console.log(`Room created: ${roomId}, current rooms:`, Array.from(rooms.keys()));
     });
 
-    socket.on('joinRoom', (roomId) => {
-      socket.join(roomId);
-      io.to(roomId).emit('playerJoined', { playerId: socket.id, roomId });
-      console.log(`Player ${socket.id} joined room: ${roomId}`);
+    socket.on('joinRoom', (roomId, playerName) => {
+      const room = rooms.get(roomId);
+      if (room) {
+        socket.join(roomId);
+        room.players.set(socket.id, {name: playerName, progress: 0});
+    
+        // Create a list of all players in the room
+        const playerList = Array.from(room.players, ([id, player]) => ({
+          playerId: id,
+          playerName: player.name
+        }));
+    
+        // Emit to the new player with the full player list
+        socket.emit('roomJoined', { 
+          roomId, 
+          players: playerList
+        });
+    
+        // Emit to all other players in the room that a new player has joined
+        socket.to(roomId).emit('playerJoined', { playerName, playerId: socket.id, roomId });
+    
+        console.log(`Player ${playerName} (${socket.id}) joined room: ${roomId}`);
+      } else {
+        console.log(`Attempt to join non-existent room: ${roomId}`);
+        socket.emit('joinError', 'Room does not exist');
+      }
     });
 
     socket.on('startGame', (roomId) => {

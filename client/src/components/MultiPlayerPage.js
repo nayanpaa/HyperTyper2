@@ -32,9 +32,15 @@ const MultiPlayerPage = () => {
       console.log('Attempting reconnection:', attemptNumber);
     });
 
-    socket.on('playerJoined', ({ playerId, roomId }) => {
+    socket.on('playerJoined', ({ playerName, playerId, roomId }) => {
       console.log(`Player ${playerId} joined room ${roomId}`);
-      setPlayers(prevPlayers => [...prevPlayers, playerId]);
+      setPlayers(prevPlayers => [...prevPlayers, playerName]);
+    });
+
+    socket.on('roomJoined', ({roomID, players}) => {
+      // ok so user who joins later needs to see tghe old userts, but make syure you  think about the new user as well
+      // make sure this works fo rall users, 
+      // and think about hwo this will work on the front end
     });
 
     socket.on('gameStarted', () => {
@@ -97,10 +103,10 @@ const MultiPlayerPage = () => {
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
-      if (joinGame) {
+      if (showJoin) {
         handleJoinSubmit(e);
       }
-      if (createGame) {
+      if (showCreate) {
         handleCreateSubmit(e);
       }
     }

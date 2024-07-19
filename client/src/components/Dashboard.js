@@ -16,6 +16,13 @@ const Dashboard = () => {
       <div>
         <button className="button-46">Training Mode</button>
       </div>
+      <div>
+        <Link className="link" to='/play/multiplayer'>
+          <button className="button-46">
+            Play Friends
+          </button>
+        </Link>
+      </div>
     </div>
   );
 };
